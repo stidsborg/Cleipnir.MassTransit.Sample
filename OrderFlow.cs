@@ -66,7 +66,7 @@ public class OrderFlow(IBus bus) : Flow<Order>,
     private Task ReserveFunds(Order order, Guid transactionId)
         => Effect.Capture(
             "ReserveFunds",
-            async () => await bus.Publish(new ReserveFunds(order.OrderId, order.TotalPrice, transactionId, order.CustomerId))
+            () => bus.Publish(new ReserveFunds(order.OrderId, order.TotalPrice, transactionId, order.CustomerId))
         );
 
     private Task CancelReservation(Order order, Guid transactionId)
@@ -78,25 +78,25 @@ public class OrderFlow(IBus bus) : Flow<Order>,
     private Task ShipProducts(Order order)
         => Effect.Capture(
             "ShipProducts",
-            async () => await bus.Publish(new ShipProducts(order.OrderId, order.CustomerId, order.ProductIds))
+            () => bus.Publish(new ShipProducts(order.OrderId, order.CustomerId, order.ProductIds))
         );
     
     private Task CancelShipment(Order order)
         => Effect.Capture(
             "CancelShipment",
-            async () => await bus.Publish(new ShipProducts(order.OrderId, order.CustomerId, order.ProductIds))
+            () => bus.Publish(new ShipProducts(order.OrderId, order.CustomerId, order.ProductIds))
         );
     
     private Task CaptureFunds(Order order, Guid transactionId)
         => Effect.Capture(
             "CaptureFunds",
-            async () => await bus.Publish(new CaptureFunds(order.OrderId, order.CustomerId, transactionId))
+            () => bus.Publish(new CaptureFunds(order.OrderId, order.CustomerId, transactionId))
         );
 
     private Task SendOrderConfirmationEmail(Order order, string trackAndTraceNumber)
         => Effect.Capture(
             "SendOrderConfirmationEmail",
-            async () => await bus.Publish(new SendOrderConfirmationEmail(order.OrderId, order.CustomerId, trackAndTraceNumber))
+            () => bus.Publish(new SendOrderConfirmationEmail(order.OrderId, order.CustomerId, trackAndTraceNumber))
         );
 
     #endregion
