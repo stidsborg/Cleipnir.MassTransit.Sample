@@ -4,8 +4,7 @@ using MassTransit;
 
 namespace Cleipnir.Flows.MassTransit.Sample;
 
-public class OrderFlow(IBus bus) : Flow,
-    ISubscription<Order>,
+public class OrderFlow(IBus bus) : Flow<Order>,
     ISubscription<ConsumeContext<FundsReserved>>,
     ISubscription<ConsumeContext<ProductsShipped>>,
     ISubscription<ConsumeContext<FundsCaptured>>,
@@ -19,9 +18,8 @@ public class OrderFlow(IBus bus) : Flow,
     public static RoutingInfo Correlate(ConsumeContext<OrderConfirmationEmailSent> msg) => Route.To(msg.Message.OrderId);
     #endregion
     
-    public override async Task Run()
+    public override async Task Run(Order order)
     {
-        var order = await Messages.FirstOfType<Order>();
         var transactionId = await Effect.Capture("TransactionId", Guid.NewGuid);
 
         await ReserveFunds(order, transactionId);

@@ -12,8 +12,8 @@ internal static class Program
     public static async Task Main(string[] args)
     {
         var host = await CreateHostBuilder([]).StartAsync();
-        var bus = host.Services.GetRequiredService<IBus>();
-
+        var orderFlows = host.Services.GetRequiredService<OrderFlows>();
+        
         var order = new Order(
             OrderId: "MK-54321",
             CustomerId: Guid.NewGuid(),
@@ -21,9 +21,8 @@ internal static class Program
             TotalPrice: 120.99M
         );
 
-        await bus.Publish(order);
+        await orderFlows.Schedule(order.OrderId, order);
         
-        var orderFlows = host.Services.GetRequiredService<OrderFlows>();
         var controlPanel = await orderFlows.ControlPanel(order.OrderId);
         while (controlPanel is null || controlPanel.Status != Status.Succeeded)
         {
@@ -31,7 +30,7 @@ internal static class Program
             controlPanel = await orderFlows.ControlPanel(order.OrderId);
         }
         
-        System.Console.WriteLine($"Order '{order.OrderId}' processing completed");
+        Console.WriteLine($"Order '{order.OrderId}' processing completed");
         await host.StopAsync();
     }
     
