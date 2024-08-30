@@ -38,16 +38,15 @@ internal static class Program
         Host.CreateDefaultBuilder(args)
             .ConfigureServices((_, services) =>
             {
-                services.AddConsumerStubs();
-                
                 services.AddFlows(c => c
                     .UseInMemoryStore()
                     .RegisterFlowsAutomatically()
-                    .IntegrateWithMassTransit()
+                    .WithOptions(new Options(messagesDefaultMaxWaitForCompletion: TimeSpan.FromMinutes(1)))
                 );
                 
                 services.AddMassTransit(x =>
                 {
+                    x.AddConsumers(typeof(Program).Assembly);
                     x.UsingInMemory((context,cfg) =>
                     {
                         cfg.ConfigureEndpoints(context);

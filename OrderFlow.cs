@@ -4,20 +4,8 @@ using MassTransit;
 
 namespace Cleipnir.Flows.MassTransit.Sample;
 
-public class OrderFlow(IBus bus) : Flow<Order>,
-    ISubscription<ConsumeContext<FundsReserved>>,
-    ISubscription<ConsumeContext<ProductsShipped>>,
-    ISubscription<ConsumeContext<FundsCaptured>>,
-    ISubscription<ConsumeContext<OrderConfirmationEmailSent>>
+public class OrderFlow(IBus bus) : Flow<Order>
 {
-    #region Routing
-    public static RoutingInfo Correlate(Order order) => Route.To(order.OrderId);
-    public static RoutingInfo Correlate(ConsumeContext<FundsReserved> msg) => Route.To(msg.Message.OrderId);
-    public static RoutingInfo Correlate(ConsumeContext<ProductsShipped> msg) => Route.To(msg.Message.OrderId);
-    public static RoutingInfo Correlate(ConsumeContext<FundsCaptured> msg) => Route.To(msg.Message.OrderId);
-    public static RoutingInfo Correlate(ConsumeContext<OrderConfirmationEmailSent> msg) => Route.To(msg.Message.OrderId);
-    #endregion
-    
     public override async Task Run(Order order)
     {
         var transactionId = await Effect.Capture("TransactionId", Guid.NewGuid);
@@ -100,4 +88,12 @@ public class OrderFlow(IBus bus) : Flow<Order>,
         );
 
     #endregion
+}
+
+public class OrderFlowsHandler(OrderFlows orderFlows) : IConsumer<FundsReserved>, IConsumer<ProductsShipped>, IConsumer<FundsCaptured>, IConsumer<OrderConfirmationEmailSent> 
+{
+    public Task Consume(ConsumeContext<FundsReserved> msg) => orderFlows.SendMessage(msg.Message.OrderId, msg.Message);
+    public Task Consume(ConsumeContext<ProductsShipped> msg) => orderFlows.SendMessage(msg.Message.OrderId, msg.Message);
+    public Task Consume(ConsumeContext<FundsCaptured> msg) => orderFlows.SendMessage(msg.Message.OrderId, msg.Message);
+    public Task Consume(ConsumeContext<OrderConfirmationEmailSent> msg) => orderFlows.SendMessage(msg.Message.OrderId, msg.Message);
 }
